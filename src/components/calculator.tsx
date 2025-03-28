@@ -1,10 +1,55 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "./Button";
 
 function Calculator() {
   const [display, setDisplay] = useState("0");
   const [previousDisplay, setPreviousDisplay] = useState<string | null>(null);
   const [answer, setAnswer] = useState<number | null>(null);
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const key = event.key;
+
+      // Numbers and decimal
+      if (/^[0-9.]$/.test(key)) {
+        handleNumberClick(key);
+      }
+
+      // Operators
+      switch (key) {
+        case "+":
+          handleOperatorClick("+");
+          break;
+        case "-":
+          handleOperatorClick("-");
+          break;
+        case "*":
+          handleOperatorClick("×");
+          break;
+        case "/":
+          handleOperatorClick("÷");
+          break;
+        case "%":
+          handleOperatorClick("%");
+          break;
+        case "Enter":
+        case "=":
+          handleEquals();
+          break;
+        case "Escape":
+          handleClear();
+          break;
+        case "Backspace":
+          if (display !== "0") {
+            setDisplay((prev) => prev.slice(0, -1) || "0");
+          }
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [display]); // Add display as dependency
 
   const handleNumberClick = (num: string) => {
     if (display === "0") {
