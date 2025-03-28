@@ -3,46 +3,101 @@ import Button from "./Button";
 
 function Calculator() {
   const [display, setDisplay] = useState("0");
+  const [previousDisplay, setPreviousDisplay] = useState<string | null>(null);
+  const [answer, setAnswer] = useState<number | null>(null);
 
   const handleNumberClick = (num: string) => {
-    setDisplay((prev) => (prev === "0" ? num : prev + num));
+    if (display === "0") {
+      setDisplay(num);
+    } else {
+      setDisplay(display + num);
+    }
   };
 
-  const handleOperatorClick = (operator: string) => {
-    // Operator logic will be implemented later
-    console.log("Operator clicked:", operator);
+  const isLastCharOperator = (str: string): boolean => {
+    const lastChar = str.slice(-1);
+    return ["+", "-", "×", "÷", "%"].includes(lastChar);
+  };
+
+  const handleOperatorClick = (op: string) => {
+    if (isLastCharOperator(display)) {
+      setDisplay(display.slice(0, -1) + op);
+    } else {
+      setDisplay(display + op);
+    }
   };
 
   const handleClear = () => {
     setDisplay("0");
   };
 
-  const handleEquals = () => {
-    // Equals logic will be implemented later
-    console.log("Equals clicked");
-  };
+  const handlePlusMinus = () => {};
 
-  const handleAnswer = () => {
-    // Answer logic will be implemented later
-    console.log("Answer clicked");
+  const handleAnswer = () => {};
+
+  const handleEquals = () => {
+    const parts = display.split(/([×÷+-])/);
+    const calculate = (a: string, b: string, operator: string): number => {
+      const num1 = Number(a);
+      const num2 = Number(b);
+      switch (operator) {
+        case "×":
+          return num1 * num2;
+        case "÷":
+          return num1 / num2;
+        case "+":
+          return num1 + num2;
+        case "-":
+          return num1 - num2;
+        default:
+          return 0;
+      }
+    };
+
+    // Handle multiplication and division first
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === "×" || parts[i] === "÷") {
+        const result = calculate(parts[i - 1], parts[i + 1], parts[i]);
+        parts[i - 1] = result.toString();
+        parts.splice(i, 2);
+        i--;
+      }
+    }
+
+    // Then handle addition and subtraction
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === "+" || parts[i] === "-") {
+        const result = calculate(parts[i - 1], parts[i + 1], parts[i]);
+        parts[i - 1] = result.toString();
+        parts.splice(i, 2);
+        i--;
+      }
+    }
+
+    setAnswer(Number(parts[0]));
+    setPreviousDisplay(display + "=" + parts[0]);
+    setDisplay(parts[0]);
   };
 
   return (
-    <div className="w-[320px] h-[550px] bg-gray-800 rounded-2xl p-6 shadow-lg">
+    <div className="w-80 h-[540px] bg-gray-800 rounded-2xl p-6 shadow-lg shadow-gray-900/50">
       {/* Output display */}
-      <div className="h-24 mb-6 bg-gray-900 rounded-xl p-4 flex items-end justify-end text-white text-3xl">
-        {display}
+      <div className="w-full h-20 bg-gray-900 rounded-2xl p-4 mb-6 flex flex-col justify-end">
+        {previousDisplay && (
+          <div className="text-gray-400 text-sm opacity-75 text-right">
+            {previousDisplay}
+          </div>
+        )}
+        <div className="text-gray-100 text-2xl font-medium text-right">
+          {display}
+        </div>
       </div>
 
       {/* Buttons grid */}
       <div className="grid grid-cols-4 gap-4">
         {/* Row 1 */}
         <Button value="C" onClick={handleClear} type="special" />
-        <Button
-          value="±"
-          onClick={() => handleOperatorClick("±")}
-          type="special"
-        />
+        <Button value="±" onClick={handlePlusMinus} type="special" />
         <Button
           value="%"
           onClick={() => handleOperatorClick("%")}
