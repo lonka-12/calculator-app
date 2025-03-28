@@ -5,11 +5,11 @@ function Calculator() {
   const [display, setDisplay] = useState("0");
   const [previousDisplay, setPreviousDisplay] = useState<string | null>(null);
   const [answer, setAnswer] = useState<number | null>(null);
+  const [firstNumber, setFirstNumber] = useState(true);
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
       const key = event.key;
-
       // Numbers and decimal
       if (/^[0-9.]$/.test(key)) {
         handleNumberClick(key);
@@ -52,8 +52,9 @@ function Calculator() {
   }, [display]); // Add display as dependency
 
   const handleNumberClick = (num: string) => {
-    if (display === "0") {
+    if (firstNumber) {
       setDisplay(num);
+      setFirstNumber(false);
     } else {
       setDisplay(display + num);
     }
@@ -74,11 +75,34 @@ function Calculator() {
 
   const handleClear = () => {
     setDisplay("0");
+    setFirstNumber(true);
   };
 
   const handlePlusMinus = () => {};
 
-  const handleAnswer = () => {};
+  const isOperator = (str: string): boolean => {
+    return str == "+" || str == "-" || str == "×" || str == "÷" || str == "%";
+  };
+
+  const handleAnswer = () => {
+    if (answer && isOperator(display.slice(-1))) {
+      setDisplay(display + answer.toString());
+    }
+  };
+
+  const renderDisplay = (str: string, maxLength: number = 18) => {
+    if (str.length > maxLength) {
+      return str.slice(str.length - maxLength, str.length);
+    }
+    return str;
+  };
+
+  const renderPreviousDisplay = (str: string, maxLength: number = 30) => {
+    if (str.length > maxLength) {
+      return "Too long to display!";
+    }
+    return str;
+  };
 
   const handleEquals = () => {
     const parts = display.split(/([×÷+-])/);
@@ -122,6 +146,7 @@ function Calculator() {
     setAnswer(Number(parts[0]));
     setPreviousDisplay(display + "=" + parts[0]);
     setDisplay(parts[0]);
+    setFirstNumber(true);
   };
 
   return (
@@ -130,11 +155,11 @@ function Calculator() {
       <div className="w-full h-20 bg-gray-900 rounded-2xl p-4 mb-6 flex flex-col justify-end">
         {previousDisplay && (
           <div className="text-gray-400 text-sm opacity-75 text-right">
-            {previousDisplay}
+            {renderPreviousDisplay(previousDisplay, 30)}
           </div>
         )}
         <div className="text-gray-100 text-2xl font-medium text-right">
-          {display}
+          {renderDisplay(display, 18)}
         </div>
       </div>
 
